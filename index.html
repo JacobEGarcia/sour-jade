@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sour Jade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#edf1ea;--card:#fbfcf8;--line:#d3dccd;--line2:#bcc9b2;--ink:#22301f;--dim:#71806a;--faint:#a2b199;--jade:#2e7d4f;--jade-deep:#1d5c3a;--seal:#b03a2c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Fraunces',Georgia,serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:42px 18px 60px}
+header{text-align:center;position:relative}
+h1{font-size:38px;font-weight:900;letter-spacing:-.5px}
+h1 em{font-style:italic;font-weight:500;color:var(--jade)}
+.sub{color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:2.2px;margin-top:8px;text-transform:uppercase}
+.stamp{display:inline-block;border:2px solid var(--seal);color:var(--seal);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10px;letter-spacing:2px;padding:5px 10px;border-radius:3px;transform:rotate(2deg);margin-top:14px;text-transform:uppercase}
+#stall{width:min(520px,94vw);margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px;text-align:center;box-shadow:0 1px 0 rgba(34,48,31,.05),0 18px 36px -22px rgba(34,48,31,.25)}
+#stone{transition:transform .2s;display:flex;justify-content:center}
+#grade{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--seal);letter-spacing:2.4px;margin-top:14px;min-height:20px;text-transform:uppercase;border:1.5px solid var(--seal);border-radius:3px;padding:4px 10px;transform:rotate(-1deg)}
+#grade.none{border-color:var(--line2);color:var(--faint)}
+#hud{display:flex;justify-content:center;gap:26px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:1.4px;margin-top:18px;text-transform:uppercase}
+#hud b{color:var(--jade-deep);font-size:15px;margin-left:5px;font-weight:600}
+#row{display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+button{cursor:pointer;background:var(--bg);border:1px solid var(--line2);border-radius:10px;color:var(--ink);font-family:'Fraunces',serif;font-weight:700;font-size:13.5px;padding:12px 18px;letter-spacing:.3px;transition:border-color .15s,transform .15s}
+button:hover:not(:disabled){border-color:var(--jade);transform:translateY(-1px);color:var(--jade-deep)}
+button:disabled{opacity:.4}
+#buy{background:var(--jade);border-color:var(--jade);color:#f4f9f4}
+#buy:hover:not(:disabled){color:#fff;background:var(--jade-deep)}
+#msg{margin-top:16px;font-size:14.5px;font-style:italic;color:var(--dim);min-height:22px;text-align:center;width:min(460px,92vw);line-height:1.7}
+footer{margin-top:26px;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sour <em>Jade</em></h1>
+  <div class="sub">The jade market &middot; cut or sell &middot; greed is a flavor</div>
+</header>
+<div id="stall">
+  <div id="stone"></div>
+  <div><span id="grade" class="none">Ungraded boulder</span></div>
+  <div id="hud"><span>Funds<b id="funds">$500</b></span><span>Stones<b id="stones">0</b></span><span>Ruined<b id="ruined">0</b></span></div>
+  <div id="row">
+    <button id="buy">Buy boulder &middot; $100</button>
+    <button id="cut" disabled>Cut it open</button>
+    <button id="sell" disabled>Sell uncut &middot; $150</button>
+  </div>
+</div>
+<div id="msg">uncut stones sell steady. cut stones are a gamble: imperial jade or sour gravel.</div>
+<footer>stall 7 &middot; the vendor says it to everyone</footer>
+<script>
+const $=id=>document.getElementById(id);
+let funds=500,stones=0,ruined=0,holding=false;
+const ART={
+ boulder:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M22 78 L12 52 L24 30 L48 18 L78 20 L100 34 L108 56 L96 78 Z" fill="#8a9484" stroke="#5f6b58" stroke-width="2.5" stroke-linejoin="round"/><path d="M34 34 L52 26 M64 28 L84 38 M28 56 L44 62 M72 60 L90 54" stroke="#6d7867" stroke-width="2" stroke-linecap="round"/><ellipse cx="60" cy="84" rx="44" ry="5" fill="#d3dccd"/></svg>',
+ imperial:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M60 12 L92 38 L80 78 L40 78 L28 38 Z" fill="#2e7d4f" stroke="#1d5c3a" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 12 L60 78 M28 38 L92 38 M60 12 L40 78 M60 12 L80 78" stroke="#5fb383" stroke-width="1.6"/><ellipse cx="60" cy="86" rx="42" ry="5" fill="#d3dccd"/><path d="M46 24 L40 32 M74 22 L80 30" stroke="#bfe6cd" stroke-width="3" stroke-linecap="round"/></svg>',
+ decent:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M60 16 L88 40 L78 76 L42 76 L32 40 Z" fill="#5da374" stroke="#3d7a54" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 16 L60 76 M32 40 L88 40" stroke="#86c29a" stroke-width="1.6"/><ellipse cx="60" cy="84" rx="42" ry="5" fill="#d3dccd"/></svg>',
+ cloudy:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M60 16 L88 40 L78 76 L42 76 L32 40 Z" fill="#a9c4ad" stroke="#7e9a84" stroke-width="2.5" stroke-linejoin="round"/><path d="M44 44 q8 -6 16 0 q8 6 16 0 M48 58 q6 -5 12 0 q6 5 12 0" stroke="#c6d8c8" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="84" rx="42" ry="5" fill="#d3dccd"/></svg>',
+ gravel:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M30 72 L24 52 L36 38 L54 36 L62 52 L56 72 Z" fill="#9a917e" stroke="#6f6858" stroke-width="2.5" stroke-linejoin="round"/><path d="M66 74 L62 58 L72 48 L86 50 L90 64 L82 74 Z" fill="#877e6c" stroke="#6f6858" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="58" cy="82" rx="42" ry="5" fill="#d3dccd"/></svg>',
+ purse:'<svg width="120" height="96" viewBox="0 0 120 96" fill="none"><path d="M40 34 q20 -14 40 0 l6 38 q-26 12 -52 0 z" fill="#c8a34e" stroke="#96762a" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 32 q14 -16 28 0" stroke="#96762a" stroke-width="3" fill="none"/><path d="M52 52 q8 6 16 0" stroke="#96762a" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="84" rx="40" ry="5" fill="#d3dccd"/></svg>'
+};
+const GRADES=[[.15,'Imperial jade','$2,400',2400,'imperial'],[.35,'Decent jade','$600',600,'decent'],[.25,'Cloudy jade','$220',220,'cloudy'],[.25,'Sour gravel','$5',5,'gravel']];
+function setStone(k,label,sealed){
+  $('stone').innerHTML=ART[k];
+  const g=$('grade');g.textContent=label;g.className=sealed?'':'none';
+}
+function render(){
+  $('funds').textContent='$'+funds;$('stones').textContent=stones;$('ruined').textContent=ruined;
+  $('buy').disabled=funds<100||holding;
+  $('cut').disabled=!holding;$('sell').disabled=!holding;
+}
+$('buy').onclick=()=>{
+  if(funds<100||holding)return;
+  funds-=100;holding=true;
+  setStone('boulder','Ungraded boulder',false);
+  $('msg').textContent='the vendor sizes you up. "Good stone. Very good stone." He says this to everyone.';
+  render();
+};
+$('sell').onclick=()=>{
+  if(!holding)return;
+  holding=false;funds+=150;stones++;
+  setStone('purse','Sold uncut',true);
+  $('msg').textContent='sold to a collector who "likes the mystery." +$150.';
+  render();
+};
+$('cut').onclick=()=>{
+  if(!holding)return;
+  holding=false;
+  const r=Math.random();let acc=0,pick=GRADES[3];
+  for(const g of GRADES){acc+=g[0];if(r<acc){pick=g;break;}}
+  setStone(pick[4],pick[1],true);
+  funds+=pick[3];
+  if(pick[3]<=5){ruined++;$('msg').textContent='the saw screams. inside: sour gravel. The vendor studies the sky. +$5 of regret.';}
+  else if(pick[3]>=2400){stones++;$('msg').textContent='IMPERIAL JADE. The stall goes quiet. Someone faints near the tea eggs. +$2,400.';}
+  else{stones++;$('msg').textContent=pick[1].toLowerCase()+' - respectable. the vendor nods slowly. +'+pick[2]+'.';}
+  render();
+  if(funds>=5000){$('msg').textContent='FUNDS: $'+funds+'. You are now JADE ROYALTY. The market bows. The sour gravel remembers you.';}
+  if(funds<100&&!holding){$('msg').textContent='FUNDS EXHAUSTED. The jade life chose someone else. Refresh to re-enter the market.';}
+};
+setStone('boulder','Ungraded boulder',false);
+render();
+</script>
+</body>
+</html>
